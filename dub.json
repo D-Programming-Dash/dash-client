@@ -1,0 +1,11 @@
+{
+    "name": "dash-tester-client",
+    "description": "Client for the Dash D compiler performance tracker.",
+    "copyright": "Copyright © 2014, David Nadlinger",
+    "authors": ["klickverbot"],
+    "dependencies": {
+        "process-stats": "~master",
+        "thrift": "~master",
+        "dlibgit": "~master"
+    }
+}

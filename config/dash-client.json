@@ -1,0 +1,20 @@
+{
+    "machineName": "dash1",
+    "resultServer": {
+        "host": "dash.klickverbot.at",
+        "port": 3274
+    },
+    "globalConfig": {
+        "priority": 0,
+        "strings": {
+            "workFactor": "5"
+        }
+    },
+    "paths": {
+        "workDir": "~/dash/work",
+        "tempDir": "~/dash/tmp",
+        "sslCACert": "dash-rootca.crt",
+        "sslCert": "dash-client-dash1.klickverbot.at.crt",
+        "sslKey": "dash-client-dash1.klickverbot.at.key"
+    }
+}
