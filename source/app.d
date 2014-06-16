@@ -77,13 +77,14 @@ string[string] foldConfigs(R)(R configs) if (
     return result;
 }
 
-BenchmarkResult executeBenchmark(string sourceDir, Compiler compiler, string[string] config) {
+BenchmarkResult executeBenchmark(string taskId, string sourceDir, Compiler compiler, string[string] config) {
     import dash.benchmark.spec;
     import std.process;
 
     auto spec = readSpec(sourceDir);
 
     BenchmarkResult result;
+    result.taskId = taskId;
     result.name = spec.name;
 
     auto uname = execute(["uname", "-a"]);
@@ -171,7 +172,7 @@ void main(string[] args) {
 
             auto benchmarkDir = cloneOrFetch(bt.scmUrl, bt.scmRevision, config.workDir);
 
-            auto result = executeBenchmark(benchmarkDir, compiler, benchmarkConfig);
+            auto result = executeBenchmark(bt.id, benchmarkDir, compiler, benchmarkConfig);
             server.postResult(config.machineName, result);
         } else if (task.isSet!"compilerUpdateTask") {
             auto cut = task.compilerUpdateTask;
