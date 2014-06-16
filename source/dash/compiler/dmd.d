@@ -83,6 +83,8 @@ class DMDGitSource : CompilerSource {
         }
 
         makeInstall(dmdDir);
+        // Make sure that we don't end up with an incomplete DMD install.
+        scope(failure) file.remove(_compilerExe);
 
 		// The default config installed by the DMD makefile is actually specific
 		// to the la
