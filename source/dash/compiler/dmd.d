@@ -86,9 +86,9 @@ class DMDGitSource : CompilerSource {
         // Make sure that we don't end up with an incomplete DMD install.
         scope(failure) file.remove(_compilerExe);
 
-		// The default config installed by the DMD makefile is actually specific
-		// to the la
-		file.write(buildPath(_targetDir, "bin", "dmd.conf"), r"EOC
+        // The default config installed by the DMD makefile is actually specific
+        // to the layout of the binary zip file.
+        file.write(buildPath(_targetDir, "bin", "dmd.conf"), r"EOC
 [Environment]
 DFLAGS=-I%@P%/../import -L-L%@P%/../lib -L--export-dynamic
 EOC");
@@ -115,6 +115,6 @@ shared static this() {
     // DMD @@BUG@@: Interface upcast is not inserted without explicit cast.
     registerCompilerSourceFactory(api.CompilerType.dmdGit,
         (name, workDir, tempDir) => cast(CompilerSource)
-			new DMDGitSource(name, workDir, tempDir)
-	);
+            new DMDGitSource(name, workDir, tempDir)
+    );
 }
