@@ -166,6 +166,7 @@ void main(string[] args) {
                 }
                 writefln("Updating compiler: %s", compilerName);
                 compilerSource.update(flatten(ci.config));
+                compiler = compilerSource.getCompiler();
             }
 
             auto benchmarkDir = cloneOrFetch(bt.scmUrl, bt.scmRevision, config.workDir);
