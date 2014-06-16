@@ -25,7 +25,7 @@ string cloneOrFetch(string url, string revision, string workDir) {
 
     auto repo = {
         if (file.exists(path)) {
-            auto repo = GitRepo(path);
+            auto repo = openRepository(path);
             auto remote = repo.loadRemote("origin");
             remote.connect(GitDirection.fetch);
             remote.download();
@@ -35,7 +35,7 @@ string cloneOrFetch(string url, string revision, string workDir) {
         }
     }();
 
-    auto obj = repo.lookup(revision);
+    auto obj = repo.lookupObject(revision);
     GitCheckoutOptions opts;
     opts.strategy = GitCheckoutStrategy.force;
     repo.checkout(obj, opts);
