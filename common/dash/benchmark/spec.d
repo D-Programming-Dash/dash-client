@@ -37,9 +37,12 @@ class DefaultTest : Test {
         }
         enforce(workFactor > 0, "Work factor must be positive.");
 
+
+        file.chdir(_rootDir);
+
         // DMD @@BUG@@: Cannot make compileCommand immutable.
         auto compileCommand = compiler.buildCompileCommand(name,
-            _sourceFiles.map!(a => buildPath(_rootDir, a)).array, configStrings);
+            _sourceFiles, configStrings);
 
         // Would like to use UFCS for these, does not work…
         static void add(ref double[][string] samples, string name, double value) {

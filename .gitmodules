@@ -1,3 +1,6 @@
 [submodule "source/dash/api"]
 	path = source/dash/api
 	url = ../dash-api
+[submodule "common/dash/api"]
+	path = common/dash/api
+	url = ../dash-api

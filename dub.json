@@ -1,11 +1,40 @@
 {
-    "name": "dash-tester-client",
+    "name": "dash-client",
     "description": "Client for the Dash D compiler performance tracker.",
     "copyright": "Copyright © 2014, David Nadlinger",
     "authors": ["klickverbot"],
+    "targetType": "none",
     "dependencies": {
-        "process-stats": "~master",
-        "thrift": "~master",
-        "dlibgit": "~master"
-    }
+        "dash-client:tester": "~master",
+        "dash-client:run-single": "~master"
+    },
+    "subPackages": [
+        {
+            "name": "common",
+            "targetType": "library",
+            "sourcePaths": ["common"],
+            "importPaths": ["common"],
+            "dependencies": {
+                "dlibgit": "~master",
+                "process-stats": "~master",
+                "thrift": "~master"
+            }
+        },
+        {
+            "name": "run-single",
+            "targetType": "executable",
+            "sourcePaths": ["run-single"],
+            "dependencies": {
+                "dash-client:common": "~master"
+            }
+        },
+        {
+            "name": "tester",
+            "targetType": "executable",
+            "sourcePaths": ["tester"],
+            "dependencies": {
+                "dash-client:common": "~master"
+            }
+        }
+    ]
 }

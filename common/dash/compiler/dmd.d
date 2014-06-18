@@ -94,7 +94,15 @@ DFLAGS=-I%@P%/../import -L-L%@P%/../lib -L--export-dynamic
 EOC");
 
         makeInstall(druntimeDir, ["DMD=" ~ _compilerExe]);
-        makeInstall(phobosDir, ["DMD=" ~ _compilerExe]);
+
+        // Fix up dependencies of install target (shared lib needs to be built).
+        file.chdir(phobosDir);
+        execute(["sed", "-i", "s/install2 : release/install2 : all/", "posix.mak"]);
+        makeInstall(phobosDir, [
+            "DMD=" ~ _compilerExe,
+            "DRUNTIME_PATH=" ~ druntimeDir,
+            "VERSION=" ~ buildPath(dmdDir, "VERSION")
+        ]);
     }
 
     override Compiler getCompiler() {

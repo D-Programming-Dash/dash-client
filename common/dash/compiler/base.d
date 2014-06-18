@@ -7,7 +7,7 @@ import vibecompat.data.json;
 interface Compiler {
     string readVersionBanner();
     string[] buildCompileCommand(string exeName, string[] sourceFiles,
-        string[string] config);
+    string[string] config);
 }
 
 interface CompilerSource {
