@@ -26,12 +26,10 @@ class DefaultTest : Test {
         import std.path : buildPath;
         import std.process : spawnProcess;
 
-        int workFactor = 1;
-        if (auto wf = "workFactor" in configStrings) {
-            workFactor = to!int(*wf);
+        uint repetitions = 1;
+        if (auto wf = "repetitions" in configStrings) {
+            repetitions = to!uint(*wf);
         }
-        enforce(workFactor > 0, "Work factor must be positive.");
-
 
         file.chdir(_rootDir);
 
@@ -56,7 +54,7 @@ class DefaultTest : Test {
         // cache warming, …? First all compilations, then the test execution,
         // or interleaved?
         auto buildPhase = TestPhase("build");
-        foreach (i; 0 .. workFactor) {
+        foreach (i; 0 .. repetitions) {
             auto compileStats = executeWithStats!spawnProcess(compileCommand);
             if (compileStats.exitCode) {
                 // FIXME: Capture stderr.
@@ -72,7 +70,7 @@ class DefaultTest : Test {
         }
 
         auto runPhase = TestPhase("run");
-        foreach (i; 0 .. workFactor) {
+        foreach (i; 0 .. repetitions) {
             auto runStats = executeWithStats!spawnProcess(buildPath(".", _name));
             if (runStats.exitCode) {
                 runPhase.exitCode = runStats.exitCode;

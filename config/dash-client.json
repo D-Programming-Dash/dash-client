@@ -7,7 +7,7 @@
     "globalConfig": {
         "priority": 0,
         "strings": {
-            "workFactor": "5"
+            "repetitions": "5"
         }
     },
     "paths": {
