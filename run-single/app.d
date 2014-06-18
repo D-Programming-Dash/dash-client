@@ -27,7 +27,10 @@ int main(string[] args) {
     auto compiler = (*c)(args[3]);
 
     auto spec = readSpec(benchmarkDir);
-    auto results = spec.tests.map!(a => a.execute(compiler, null)).array;
+    foreach (test; spec.tests) {
+        writefln(" :: Executing %s", test.name);
+        writeln(test.execute(compiler, null));
+    }
 
     return 0;
 }
