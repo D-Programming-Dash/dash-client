@@ -69,16 +69,18 @@ class DefaultTest : Test {
             }
         }
 
-        version (Posix) {
-            import std.stdio;
-            auto nullInput = File("/dev/null", "r");
-            auto nullOutput = File("/dev/null", "w");
-        } else {
-            static assert(false, "Benchmark I/O silencing not implemented on this OS.");
-        }
-
         auto runPhase = TestPhase("run");
         foreach (i; 0 .. repetitions) {
+            // Discard stdin/stdout/stderr of the child process. Note that we
+            // need to re-open those on every iteration.
+            version (Posix) {
+                import std.stdio;
+                auto nullInput = File("/dev/null", "r");
+                auto nullOutput = File("/dev/null", "w");
+            } else {
+                static assert(false, "Benchmark I/O silencing not implemented on this OS.");
+            }
+
             auto runStats = executeWithStats!spawnProcess(
                 buildPath(".", _name), nullInput, nullOutput, nullInput);
             if (runStats.exitCode) {
