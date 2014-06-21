@@ -99,14 +99,15 @@ BenchmarkResult executeBenchmark(string taskId, string sourceDir, Compiler compi
 }
 
 void main(string[] args) {
+    import core.thread : Thread;
     import dash.scm;
+    import std.datetime : Clock, seconds;
+    import std.typecons : Nullable;
     import thrift.codegen.client;
     import thrift.protocol.compact;
     import thrift.transport.buffered;
     import thrift.transport.socket;
     import thrift.transport.ssl;
-    import std.stdio;
-    import std.typecons : Nullable;
 
     enforce(args.length == 2, "Pass exactly one argument, the config file path.");
 
@@ -136,56 +137,76 @@ void main(string[] args) {
             type, name, config.workDir, config.tempDir));
     }
 
-    writefln("Connecting to server %s (port %s)...", config.serverName, config.serverPort);
-    socket.open();
-    writeln("...done.");
+    void log(T...)(string format, T t) {
+        import std.stdio;
+        writefln("[%s] " ~ format, Clock.currTime, t);
+    }
+
+    // We keep track of our last result so that a problem with the server
+    // connection does not cause our work to be lost (and so that the task is
+    // not considered a failure on the server, requiring manual re-scheduling).
+    Nullable!BenchmarkResult resultToPost;
     while (true) {
-        writeln("Polling server for next task...");
-        auto task = server.nextTask(config.machineName);
-        if (task.isSet!"benchmarkTask") {
-            auto bt = task.benchmarkTask;
-            writefln("Running benchmark: %s", bt);
-
-            auto benchmarkConfig = flatten(bt.config);
-            auto compilerName =
-                *enforce("compiler" in benchmarkConfig, "No compiler specified");
-
-            // We need to fetch the compiler configuration from the server if
-            // we don't know it, or we no longer have it installed (should not
-            // happen during normal operation).
-            Nullable!CompilerInfo ci;
-            auto compilerSource = compilerSources.get(compilerName, null);
-            if (!compilerSource) {
-                ci = server.getCompilerInfo(config.machineName, compilerName);
-                compilerSource = getOrCreateCompilerSource(ci.type, ci.name);
+        try {
+            if (!socket.isOpen) {
+                log("Connecting to server %s (port %s)...", config.serverName, config.serverPort);
+                socket.open();
+                log("...done.");
             }
 
-            auto compiler = compilerSource.getCompiler();
-            if (!compiler) {
-                if (ci.isNull) {
+            if (!resultToPost.isNull) {
+                server.postResult(config.machineName, resultToPost);
+                resultToPost.nullify();
+            }
+
+            log("Polling server for next task...");
+            auto task = server.nextTask(config.machineName);
+            if (task.isSet!"benchmarkTask") {
+                auto bt = task.benchmarkTask;
+                log("Running benchmark: %s", bt);
+
+                auto benchmarkConfig = flatten(bt.config);
+                auto compilerName =
+                    *enforce("compiler" in benchmarkConfig, "No compiler specified");
+
+                // We need to fetch the compiler configuration from the server if
+                // we don't know it yet, or the corresponding working directory
+                // has been removed.
+                Nullable!CompilerInfo ci;
+                auto compilerSource = compilerSources.get(compilerName, null);
+                if (!compilerSource) {
                     ci = server.getCompilerInfo(config.machineName, compilerName);
+                    compilerSource = getOrCreateCompilerSource(ci.type, ci.name);
                 }
-                writefln("Updating compiler: %s", compilerName);
-                compilerSource.update(flatten(ci.config));
-                compiler = compilerSource.getCompiler();
+
+                auto compiler = compilerSource.getCompiler();
+                if (!compiler) {
+                    if (ci.isNull) {
+                        ci = server.getCompilerInfo(config.machineName, compilerName);
+                    }
+                    log("Updating compiler: %s", compilerName);
+                    compilerSource.update(flatten(ci.config));
+                    compiler = compilerSource.getCompiler();
+                }
+
+                auto benchmarkDir = cloneOrFetch(bt.scmUrl, bt.scmRevision, config.workDir);
+
+                resultToPost = executeBenchmark(bt.id, benchmarkDir, compiler, benchmarkConfig);
+            } else if (task.isSet!"compilerUpdateTask") {
+                auto cut = task.compilerUpdateTask;
+                log("Updating compiler: %s", cut);
+
+                auto source = getOrCreateCompilerSource(cut.type, cut.name);
+                source.update(flatten(cut.config));
+            } else {
+                log("No task to perform, sleeping.");
+                // TODO: Make longer and configurable.
+                Thread.sleep(15.seconds);
             }
-
-            auto benchmarkDir = cloneOrFetch(bt.scmUrl, bt.scmRevision, config.workDir);
-
-            auto result = executeBenchmark(bt.id, benchmarkDir, compiler, benchmarkConfig);
-            server.postResult(config.machineName, result);
-        } else if (task.isSet!"compilerUpdateTask") {
-            auto cut = task.compilerUpdateTask;
-            writefln("Updating compiler: %s", cut);
-
-            auto source = getOrCreateCompilerSource(cut.type, cut.name);
-            source.update(flatten(cut.config));
-        } else {
-            writeln("No task to perform, sleeping.");
-            import core.thread;
-            import core.time;
-            // TODO: Make longer and configurable.
-            Thread.sleep(5.seconds);
+        } catch (Exception e) {
+            log("%s", e);
+            log("Waiting for server connection to come back up, sleeping.");
+            Thread.sleep(15.seconds);
         }
     }
 }
