@@ -1,7 +1,7 @@
 module dash.compiler.dmd;
 
 import dash.compiler.base;
-import std.algorithm : canFind, copy, find, joiner, zip;
+import std.algorithm : canFind, find, joiner, zip;
 import std.array : appender;
 import std.conv : to;
 import std.exception : enforce;
@@ -25,10 +25,8 @@ class DMD : Compiler {
     override string[] buildCompileCommand(string exeName, string[] sourceFiles,
         string[string] config
     ) {
-        auto result = appender([_dmdPath]);
-        result ~= "-of" ~ exeName;
-        sourceFiles.copy(result);
-        return result.data;
+        return buildDmdCompatibleCompileCommand(
+            _dmdPath, exeName, sourceFiles, config);
     }
 
 private:

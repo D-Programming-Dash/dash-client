@@ -3,7 +3,7 @@ module dash.compiler.ldc;
 import api = dash.api;
 import dash.compiler.base;
 import dash.scm;
-import std.algorithm : copy, joiner, splitter;
+import std.algorithm : joiner;
 import std.array : appender;
 import std.conv : to;
 import std.exception : enforce;
@@ -27,13 +27,8 @@ class LDC : Compiler {
     override string[] buildCompileCommand(string exeName, string[] sourceFiles,
         string[string] config
     ) {
-        auto result = appender([_ldc2Path]);
-        result ~= "-of" ~ exeName;
-        sourceFiles.copy(result);
-        if (auto dflags = "dflags" in config) {
-            (*dflags).splitter(' ').copy(result);
-        }
-        return result.data;
+        return buildDmdCompatibleCompileCommand(
+            _ldc2Path, exeName, sourceFiles, config);
     }
 
 private:

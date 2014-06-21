@@ -21,6 +21,19 @@ CompilerSource createCompilerSource(api.CompilerType type, string name, string w
     return (*factory)(name, workDir, tempDir);
 }
 
+package string[] buildDmdCompatibleCompileCommand(string compilerPath,
+    string exeName, string[] sourceFiles, string[string] config
+) {
+    import std.algorithm : copy, splitter;
+    auto result = appender([compilerPath]);
+    result ~= "-of" ~ exeName;
+    sourceFiles.copy(result);
+    if (auto dflags = "dflags" in config) {
+        (*dflags).splitter(' ').copy(result);
+    }
+    return result.data;
+}
+
 alias SourceFactory = CompilerSource delegate(string, string, string);
 package void registerCompilerSourceFactory(api.CompilerType type, SourceFactory factory) {
     enforce(type !in _sourceTypeMap, text("Compiler source type already handled: ", type));
