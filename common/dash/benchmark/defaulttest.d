@@ -27,8 +27,15 @@ class DefaultTest : Test {
         import std.process : spawnProcess;
 
         uint repetitions = 1;
-        if (auto wf = "repetitions" in configStrings) {
-            repetitions = to!uint(*wf);
+        if (auto rep = "repetitions" in configStrings) {
+            repetitions = to!uint(*rep);
+        }
+
+        string[string] runEnv;
+        if (auto wf = "workFactor" in configStrings) {
+            // Convert to double and back here to make sure the value is valid.
+            auto workFactor = to!double(*wf);
+            runEnv["DASH_WORK_FACTOR"] = to!string(workFactor);
         }
 
         file.chdir(_rootDir);
@@ -82,7 +89,7 @@ class DefaultTest : Test {
             }
 
             auto runStats = executeWithStats!spawnProcess(
-                buildPath(".", _name), nullInput, nullOutput, nullInput);
+                buildPath(".", _name), nullInput, nullOutput, nullInput, runEnv);
             if (runStats.exitCode) {
                 runPhase.exitCode = runStats.exitCode;
                 break;
