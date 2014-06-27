@@ -57,6 +57,12 @@ class LDCGitSource : CompilerSource {
         enforce(submoduleUpdate.status == 0,
             text("Error updating submodules: ", submoduleUpdate.output));
 
+        // Be sure not to leave an existing out-of-date installation behind
+        // in the target directory if the build fails.
+        if (file.exists(_targetDir)) {
+            file.rmdirRecurse(_targetDir);
+        }
+
         immutable buildDir = buildPath(_tempDir, _name);
         enforce(!file.exists(buildDir));
         file.mkdirRecurse(buildDir);
