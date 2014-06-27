@@ -39,6 +39,7 @@ string cloneOrFetch(string url, string revision, string workDir) {
     GitCheckoutOptions opts;
     opts.strategy = GitCheckoutStrategy.force;
     repo.checkout(obj, opts);
+    repo.setHeadDetached(obj.id);
 
     return path;
 }
