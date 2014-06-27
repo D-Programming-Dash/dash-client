@@ -25,10 +25,12 @@ class LDC : Compiler {
     }
 
     override string[] buildCompileCommand(string exeName, string[] sourceFiles,
-        string[string] config
+        string[] versionDefines, string[string] config
     ) {
-        return buildDmdCompatibleCompileCommand(
-            _ldc2Path, exeName, sourceFiles, config);
+        auto cmd = buildDmdCompatibleCompileCommand(
+            _ldc2Path, exeName, sourceFiles, config).appender;
+        versionDefines.map!(a => "-d-version=" ~ a).copy(cmd);
+        return cmd.data;
     }
 
 private:

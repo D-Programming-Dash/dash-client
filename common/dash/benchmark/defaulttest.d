@@ -9,8 +9,9 @@ class DefaultTest : Test {
     this(string rootDir, Json specData) {
         _rootDir = rootDir;
         _name = specData["name"].get!string;
-        foreach (f; specData["sourceFiles"]) {
-            _sourceFiles ~= f.get!string;
+        deserializeJson(_sourceFiles, specData["sourceFiles"]);
+        if (auto versions = "versionDefines" in specData) {
+            deserializeJson(_versionDefines, *versions);
         }
     }
 
@@ -42,7 +43,7 @@ class DefaultTest : Test {
 
         // DMD @@BUG@@: Cannot make compileCommand immutable.
         auto compileCommand = compiler.buildCompileCommand(name,
-            _sourceFiles, configStrings);
+            _sourceFiles, _versionDefines, configStrings);
 
         // Would like to use UFCS for these, does not work…
         static void add(ref double[][string] samples, string name, double value) {
@@ -105,4 +106,5 @@ private:
     string _name;
     string _rootDir;
     string[] _sourceFiles;
+    string[] _versionDefines;
 }

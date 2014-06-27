@@ -23,10 +23,12 @@ class DMD : Compiler {
     }
 
     override string[] buildCompileCommand(string exeName, string[] sourceFiles,
-        string[string] config
+        string[] versionDefines, string[string] config
     ) {
-        return buildDmdCompatibleCompileCommand(
-            _dmdPath, exeName, sourceFiles, config);
+        auto cmd = buildDmdCompatibleCompileCommand(
+            _dmdPath, exeName, sourceFiles, config).appender;
+        versionDefines.map!(a => "-version=" ~ a).copy(cmd);
+        return cmd.data;
     }
 
 private:
