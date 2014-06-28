@@ -40,7 +40,6 @@ class DMDGitSource : CompilerSource {
     this(string name, string workDir, string tempDir) {
         _name = name;
         _workDir = workDir;
-        _tempDir = tempDir;
         _targetDir = buildPath(_workDir, _name);
         _compilerExe = buildPath(_targetDir, "bin", "dmd");
         _compiler = new DMD(_compilerExe);
@@ -113,7 +112,6 @@ EOC");
 private:
     immutable string _name;
     immutable string _workDir;
-    immutable string _tempDir;
     immutable string _targetDir;
     immutable string _compilerExe;
     Compiler _compiler;
