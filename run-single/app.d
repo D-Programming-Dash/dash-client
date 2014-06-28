@@ -13,9 +13,11 @@ int main(string[] args) {
     immutable benchmarkDir = args[1];
 
     import dash.compiler.dmd;
+    import dash.compiler.gdc;
     import dash.compiler.ldc;
     Compiler function(string)[string] compilerConstructors = [
         "dmd": a => new DMD(a),
+        "gdc": a => new GDC(a)
         "ldc": a => new LDC(a)
     ];
 

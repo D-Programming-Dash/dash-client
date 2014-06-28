@@ -8,7 +8,9 @@
         "priority": 0,
         "strings": {
             "repetitions": "5",
-            "workFactor": "3"
+            "workFactor": "3",
+            "gdcGitGccVersion": "4.9.0",
+            "gdcGitGccArchiveRoot": "~"
         }
     },
     "paths": {
