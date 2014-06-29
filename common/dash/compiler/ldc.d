@@ -2,7 +2,6 @@ module dash.compiler.ldc;
 
 import api = dash.api;
 import dash.compiler.base;
-import dash.scm;
 import std.algorithm : joiner;
 import std.array : appender;
 import std.conv : to;
@@ -48,6 +47,18 @@ class LDCGitSource : CompilerSource {
     }
 
     override void update(string[string] config) {
+        import dash.scm;
+
+        // Be sure not to leave an existing out-of-date installation behind
+        // in the target directory if the build fails.
+        void cleanTargetDir() {
+            if (file.exists(_targetDir)) {
+                file.rmdirRecurse(_targetDir);
+            }
+        }
+        cleanTargetDir();
+        scope (failure) cleanTargetDir();
+
         immutable sourceDir = cloneOrFetch(config["url0"], config["version0"], _workDir);
 
         // TODO: Implement this using libgit2.
@@ -56,12 +67,6 @@ class LDCGitSource : CompilerSource {
             execute(["git", "submodule", "update", "--init", "--force", "--recursive"]);
         enforce(submoduleUpdate.status == 0,
             text("Error updating submodules: ", submoduleUpdate.output));
-
-        // Be sure not to leave an existing out-of-date installation behind
-        // in the target directory if the build fails.
-        if (file.exists(_targetDir)) {
-            file.rmdirRecurse(_targetDir);
-        }
 
         immutable buildDir = buildPath(_tempDir, _name);
         enforce(!file.exists(buildDir));

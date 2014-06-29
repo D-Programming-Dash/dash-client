@@ -48,6 +48,16 @@ class DMDGitSource : CompilerSource {
     override void update(string[string] config) {
         import dash.scm;
 
+        // Be sure not to leave an existing out-of-date installation behind
+        // in the target directory if the build fails.
+        void cleanTargetDir() {
+            if (file.exists(_targetDir)) {
+                file.rmdirRecurse(_targetDir);
+            }
+        }
+        cleanTargetDir();
+        scope (failure) cleanTargetDir();
+
         immutable urls = [config["url0"], config["url1"], config["url2"]];
         immutable versions = [config["version0"], config["version1"], config["version2"]];
 
@@ -82,8 +92,6 @@ class DMDGitSource : CompilerSource {
         }
 
         makeInstall(dmdDir);
-        // Make sure that we don't end up with an incomplete DMD install.
-        scope(failure) file.remove(_compilerExe);
 
         // The default config installed by the DMD makefile is actually specific
         // to the layout of the binary zip file.

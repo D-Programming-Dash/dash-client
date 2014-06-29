@@ -55,6 +55,17 @@ class GDCGitSource : CompilerSource {
 
     override void update(string[string] config) {
         import dash.scm;
+
+        // Be sure not to leave an existing out-of-date installation behind
+        // in the target directory if the build fails.
+        void cleanTargetDir() {
+            if (file.exists(_targetDir)) {
+                file.rmdirRecurse(_targetDir);
+            }
+        }
+        cleanTargetDir();
+        scope (failure) cleanTargetDir();
+
         immutable sourceDir =
             cloneOrFetch(config["url0"], config["version0"], _workDir);
 
