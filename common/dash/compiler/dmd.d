@@ -93,12 +93,30 @@ class DMDGitSource : CompilerSource {
 
         makeInstall(dmdDir);
 
-        // The default config installed by the DMD makefile is actually specific
-        // to the layout of the binary zip file.
-        file.write(buildPath(_targetDir, "bin", "dmd.conf"), r"EOC
+        version (Posix) {
+            immutable targetBinDir = dirName(_compilerExe);
+            if (file.exists(targetBinDir)) {
+                // The default config installed by the DMD makefile is actually specific
+                // to the layout of the binary zip file.
+                file.write(buildPath(_targetDir, "bin", "dmd.conf"), r"EOC
 [Environment]
 DFLAGS=-I%@P%/../import -L-L%@P%/../lib -L--export-dynamic
 EOC");
+            } else {
+                // DMD pull request 3798 has changed the "make install" directory
+                // structure to something resembling the release zip archives. To
+                // stay compatible to any further nonsense along these lines, just
+                // look for the dmd executable.
+                auto binaries = file.dirEntries(_targetDir, file.SpanMode.depth).filter!(
+                    a => (a.isFile && baseName(a.name) == "dmd"));
+                immutable binary = binaries.front;
+                binaries.popFront();
+                enforce(binaries.empty);
+
+                file.mkdirRecurse(targetBinDir);
+                file.symlink(binary, _compilerExe);
+            }
+        }
 
         makeInstall(druntimeDir, ["DMD=" ~ _compilerExe]);
 
